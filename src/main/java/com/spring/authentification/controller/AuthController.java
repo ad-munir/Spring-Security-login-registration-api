@@ -17,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.Date;
 
 @RestController
 @CrossOrigin
@@ -69,67 +68,4 @@ public class AuthController {
         userRepository.save(user);
         return new ResponseEntity<>("User is registered successfully!", HttpStatus.OK);
     }
-
-
-
-    @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUsekr(@RequestBody LoginDto loginDto) {
-        try {
-            // Authenticate the user using Spring Security's AuthenticationManager
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    loginDto.getUsernameOrEmail(), loginDto.getPassword()));
-
-            // Set the authenticated user in the SecurityContext
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            // Return a success response
-            ApiResponse response = new ApiResponse("User signed-in successfully!", new Date(), 200);
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            ApiResponse response = new ApiResponse("Invalid username or password.", new Date(), 400);
-            return ResponseEntity.badRequest().body(response);
-        }
-    }
-
-    // Endpoint for user registration (sign-up)
-    @PostMapping("/signup")
-    public ResponseEntity<> registerUser(@RequestBody SignUpDto signUpDto) {
-
-        try {
-            // Check if the username is already taken
-            if (userRepository.existsByUsername(signUpDto.getUsername())) {
-                ApiResponse response = new ApiResponse("Username is already taken.", new Date(), 400);
-                return ResponseEntity.badRequest().body(response);
-            }
-
-            // Check if the email is already taken
-            if (userRepository.existsByEmail(signUpDto.getEmail())) {
-                ApiResponse response = new ApiResponse("Email is already taken.", new Date(), 400);
-                return ResponseEntity.badRequest().body(response);
-            }
-
-            // Create a new user object and set its properties
-            User user = new User();
-            user.setFirstname(signUpDto.getFirstname());
-            user.setLastname(signUpDto.getLastname());
-            user.setUsername(signUpDto.getUsername());
-            user.setEmail(signUpDto.getEmail());
-            user.setPassword(passwordEncoder.encode(signUpDto.getPassword()));
-
-            // Get the "ADMIN" role and assign it to the user
-            Role roles = roleRepository.findByName("SEEKER").get();
-            user.setRoles(Collections.singleton(roles));
-
-            // Save the user to the database
-            userRepository.save(user);
-
-            // Return a success response
-            ApiResponse response = new ApiResponse("User registered successfully!", new Date(), 200);
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            ApiResponse response = new ApiResponse("Registration failed.", new Date(), 400);
-            return ResponseEntity.badRequest().body(response);
-        }
 }
